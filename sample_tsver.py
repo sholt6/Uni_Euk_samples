@@ -1,6 +1,7 @@
 #!/usr/local/bin/python3
 import re
 import xml.etree.ElementTree as et
+import csv
 
 def GetXMLs(filename):
     with open(filename, 'r') as input:
@@ -26,3 +27,10 @@ xmls = GetXMLs('test.sql')
 for i in range(0, len(xmls)):
     xmls[i] = FixXMLs(xmls[i])
 root = et.fromstring(xmls[0])
+
+sample_data = open('samples.tsv', 'w')
+csvwriter = csv.writer(sample_data)
+
+
+
+sample_date.close()
