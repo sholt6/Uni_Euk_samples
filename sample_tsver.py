@@ -23,18 +23,51 @@ def FixXMLs(xml):
 
     return xml
 
-def GetVals(header, root):
-    val = root.findall(header[0])[0].text
-    print(val)
+def GetVals(xml):
+    values = {}
+    root = et.fromstring(xml)
+    tag_vals = GetAttributes(root)
 
-xmls = GetXMLs('test.sql')
-for i in range(0, len(xmls)):
-    xmls[i] = FixXMLs(xmls[i])
-root = et.fromstring(xmls[0])
-print(root.findall('SAMPLE')[1].text)
-quit()
-sample_data = open('samples.tsv', 'w')
-csvwriter = csv.writer(sample_data)
+    values['sample_alias'] = root[0].attrib['alias']
+    values['tax_id'] = root[0][2][0].text
+    values['scientific_name'] = root[0][2][1].text
+    values['common_name'] = ''
+    values['sample_title'] = root[0][1].text
+    values['sample_description'] = ''
+    values['size fraction lower threshold'] = ''
+    values['size fraction upper threshold'] = ''
+    values['target gene'] = tag_vals['target gene']
+    values['target subfragment'] = tag_vals['target subfragment']
+    values['pcr primers'] = tag_vals['pcr primers']
+    values['isolation_source'] = ''
+    values['collected_by'] = ''
+    values['collection date'] = tag_vals['collection date']
+    values['geographic location (altitude)'] = ''
+    values['geographic location (country and/or sea)'] = \
+        tag_vals['geographic location (country and/or sea)']
+    values['geographic location (latitude)'] = \
+        tag_vals['geographic location (latitude)']
+    values['geographic location (longitude)'] = \
+        tag_vals['geographic location (longitude)']
+    values['geographic location (region and locality)'] = ''
+    values['geographic location (depth)'] = ''
+    values['environment (biome)'] = tag_vals['environment (biome)']
+    values['environment (feature)'] = tag_vals['environment (feature)']
+    values['environment (material)'] = tag_vals['environment (material)']
+    values['sample collection device or method'] = ''
+    values['environmental_sample'] = tag_vals['environmental_sample']
+    values['salinity'] = ''
+    values['further details'] = tag_vals['Further Details']
+
+    return values
+
+def GetAttributes(root):
+    tag_vals = {}
+    for attribute in root[0][3].findall('SAMPLE_ATTRIBUTE'):
+        tag_vals[attribute[0].text] = attribute[1].text
+
+    return tag_vals
+
 header = ['sample_alias', 'tax_id', 'scientific_name', 'common_name',
           'sample_title', 'sample_description', 'size fraction lower threshold',
           'size fraction upper threshold', 'target gene', 'target subfragment',
@@ -47,6 +80,22 @@ header = ['sample_alias', 'tax_id', 'scientific_name', 'common_name',
           'environment (feature)', 'environment (material)',
           'sample collection device or method', 'environmental_sample',
           'salinity', 'further details']
+
+xmls = GetXMLs('test.sql')
+
+for i in range(0, len(xmls)):
+    xmls[i] = FixXMLs(xmls[i])
+
+tsv = open("samples.tsv", "w")
+tsv.write('\t'.join(header))
+
+for xml in xmls:
+    values = GetVals(xml)
+    tsv.write('\n')
+    for title in header:
+        tsv.write(values[title] + '\t')
+
+tsv.close()
 #header = "sample_alias\ttax_id\tscientific_name\tcommon_name\tsample_title\t"\
 #         "sample_description\tsize fraction lower threshold\t"\
 #         "size fraction upper threshold\ttarget gene\ttarget subfragment\t"\
@@ -59,8 +108,3 @@ header = ['sample_alias', 'tax_id', 'scientific_name', 'common_name',
 #         "environment (feature)\tenvironment (material)\t"\
 #         "sample collection device or method\tenvironmental_sample\t"\
 #         "salinity\tfurther details" # May need newline"\
-print(header)
-
-GetVals(header, root)
-
-sample_data.close()
